@@ -4,14 +4,12 @@ import 'waiting_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   Future<void> _loginAsParent(BuildContext context) async {
-    DocumentReference sessionRef =
-        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+    DocumentReference sessionRef = FirebaseFirestore.instance.collection('sessions').doc('currentSession');
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isParentLoggedIn'] == true) {
       // Parent is already logged in
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Parent is already logged in on another device.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Parent is already logged in on another device.')));
     } else {
       // Set isParentLoggedIn to true and navigate to WaitingScreen
       await sessionRef.update({'isParentLoggedIn': true});
@@ -23,13 +21,20 @@ class RoleSelectionScreen extends StatelessWidget {
   }
 
   Future<void> _loginAsKid(BuildContext context) async {
-    DocumentReference sessionRef =
-        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+    DocumentReference sessionRef = FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+    DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => WaitingScreen(role: 'kid')),
-    );
+    if (sessionSnapshot.exists && sessionSnapshot['isKidLoggedIn'] == true) {
+      // Kid is already logged in
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kid is already logged in on another device.')));
+    } else {
+      // Set isKidLoggedIn to true and navigate to WaitingScreen
+      await sessionRef.update({'isKidLoggedIn': true});
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => WaitingScreen(role: 'kid')),
+      );
+    }
   }
 
   @override

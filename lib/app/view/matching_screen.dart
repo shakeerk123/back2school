@@ -1,13 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quiz_app/app/view/role_selection.dart';
 
+
 class MatchingScreen extends StatefulWidget {
-  final String role; // 'kid' or 'parent'
-
-  MatchingScreen({required this.role});
-
   @override
   _MatchingScreenState createState() => _MatchingScreenState();
 }
@@ -45,13 +43,14 @@ class _MatchingScreenState extends State<MatchingScreen> {
     final childAnswers = List<String>.from(data['childAnswers']);
 
     int matches = 0;
-    for (int i = 0; i < parentAnswers.length; i++) {
+    int maxIndex = parentAnswers.length < childAnswers.length ? parentAnswers.length : childAnswers.length;
+    for (int i = 0; i < maxIndex; i++) {
       if (parentAnswers[i] == childAnswers[i]) {
         matches++;
       }
     }
 
-    return {'matches': matches, 'total': parentAnswers.length};
+    return {'matches': matches, 'total': maxIndex};
   }
 
   Future<void> _resetGame(BuildContext context) async {
@@ -64,8 +63,8 @@ class _MatchingScreenState extends State<MatchingScreen> {
       'childSubmittedAnswer': '',
       'parentCompleted': false,
       'kidCompleted': false,
-      'score': 0,
       'isParentLoggedIn': false,
+      'isKidLoggedIn': false,
       'parentReady': false,
       'kidReady': false,
     });
@@ -87,13 +86,13 @@ class _MatchingScreenState extends State<MatchingScreen> {
   Widget build(BuildContext context) {
     if (_waitingForOther) {
       return Scaffold(
-        appBar: AppBar(title: Text('Waiting for the other player')),
+        appBar: AppBar(title: Text('Waiting for the other player'), automaticallyImplyLeading: false),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Matches')),
+      appBar: AppBar(title: Text('Matches'), automaticallyImplyLeading: false),
       body: FutureBuilder<Map<String, int>>(
         future: _calculateMatches(),
         builder: (context, snapshot) {
@@ -112,8 +111,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Matches: $matches / $total',
-                    style: TextStyle(fontSize: 24)),
+                Text('Matches: $matches / $total', style: TextStyle(fontSize: 24)),
                 SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => _resetGame(context),

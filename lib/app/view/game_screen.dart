@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:quiz_app/app/view/score_screen.dart';
 import 'dart:async';
+import 'matching_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final String role; // 'kid' or 'parent'
@@ -20,11 +20,28 @@ class _GameScreenState extends State<GameScreen> {
   String _currentQuestion = '';
   List<String> _options = [];
   bool _loading = true;
+  late Timer _timer;
+  int _remainingTime = 60;
+  bool _hasAnswered = false;
 
   @override
   void initState() {
     super.initState();
     _initializeSession();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingTime > 0) {
+          _remainingTime--;
+        } else {
+          _timer.cancel();
+          _completeGame();
+        }
+      });
+    });
   }
 
   Future<void> _initializeSession() async {
@@ -45,16 +62,22 @@ class _GameScreenState extends State<GameScreen> {
           if (_currentQuestionIndex < questions.length) {
             final question = questions[_currentQuestionIndex];
             setState(() {
-              _currentQuestion = widget.role == 'parent'
-                  ? question['parentQuestion']
-                  : question['kidQuestion'];
+              _currentQuestion = widget.role == 'parent' ? question['parentQuestion'] : question['kidQuestion'];
               _options = List<String>.from(question['options']);
               _loading = false;
+              _hasAnswered = false; // Reset for the new question
             });
           } else {
-            print(
-                'Error: currentQuestionIndex ($_currentQuestionIndex) is out of range for questions array (length: ${questions.length}).');
+            print('Error: currentQuestionIndex ($_currentQuestionIndex) is out of range for questions array (length: ${questions.length}).');
           }
+
+          // Check if both have completed the game
+          final parentCompleted = data['parentCompleted'] ?? false;
+          final kidCompleted = data['kidCompleted'] ?? false;
+          if (parentCompleted && kidCompleted) {
+            _completeGame();
+          }
+
         } catch (e) {
           print('Error processing snapshot data: $e');
         }
@@ -65,6 +88,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _submitAnswer(String answer) async {
+    if (_hasAnswered) return; // Prevent multiple answers for the same question
+    _hasAnswered = true;
+
     try {
       DocumentSnapshot snapshot = await _sessionRef.get();
       final data = snapshot.data() as Map<String, dynamic>;
@@ -84,11 +110,7 @@ class _GameScreenState extends State<GameScreen> {
           await _sessionRef.update({
             'parentCompleted': true,
           });
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => MatchingScreen(role: widget.role)),
-          );
+          _completeGame();
         }
       } else {
         await _sessionRef.update({
@@ -104,11 +126,7 @@ class _GameScreenState extends State<GameScreen> {
           await _sessionRef.update({
             'kidCompleted': true,
           });
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => MatchingScreen(role: widget.role)),
-          );
+          _completeGame();
         }
       }
     } catch (e) {
@@ -116,9 +134,26 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void _completeGame() async {
+    if (widget.role == 'parent') {
+      await _sessionRef.update({
+        'parentCompleted': true,
+      });
+    } else {
+      await _sessionRef.update({
+        'kidCompleted': true,
+      });
+    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => MatchingScreen()),
+    );
+  }
+
   @override
   void dispose() {
     _subscription.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -127,16 +162,29 @@ class _GameScreenState extends State<GameScreen> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
-            title: Text(
-                '${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}')),
+          title: Text('${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
+          automaticallyImplyLeading: false, // Remove the back button
+        ),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-              '${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}')),
+        title: Text('${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
+        automaticallyImplyLeading: false, // Remove the back button
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                'Time: $_remainingTime',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -144,9 +192,9 @@ class _GameScreenState extends State<GameScreen> {
             Text(_currentQuestion, style: TextStyle(fontSize: 24)),
             SizedBox(height: 24),
             ..._options.map((option) => ElevatedButton(
-                  onPressed: () => _submitAnswer(option),
-                  child: Text(option),
-                )),
+              onPressed: () => _submitAnswer(option),
+              child: Text(option),
+            )),
           ],
         ),
       ),
