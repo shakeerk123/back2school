@@ -1,17 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:quiz_app/app/utils/widgets/custom_button.dart';
 import 'waiting_screen.dart';
 
-class RoleSelectionScreen extends StatelessWidget {
+class RoleSelectionScreen extends StatefulWidget {
+  @override
+  _RoleSelectionScreenState createState() => _RoleSelectionScreenState();
+}
+
+class _RoleSelectionScreenState extends State<RoleSelectionScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> _loginAsParent(BuildContext context) async {
-    DocumentReference sessionRef = FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+    DocumentReference sessionRef =
+        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isParentLoggedIn'] == true) {
-      // Parent is already logged in
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Parent is already logged in on another device.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Parent is already logged in on another device.')));
     } else {
-      // Set isParentLoggedIn to true and navigate to WaitingScreen
       await sessionRef.update({'isParentLoggedIn': true});
       Navigator.push(
         context,
@@ -21,14 +50,14 @@ class RoleSelectionScreen extends StatelessWidget {
   }
 
   Future<void> _loginAsKid(BuildContext context) async {
-    DocumentReference sessionRef = FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+    DocumentReference sessionRef =
+        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isKidLoggedIn'] == true) {
-      // Kid is already logged in
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kid is already logged in on another device.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Kid is already logged in on another device.')));
     } else {
-      // Set isKidLoggedIn to true and navigate to WaitingScreen
       await sessionRef.update({'isKidLoggedIn': true});
       Navigator.push(
         context,
@@ -40,21 +69,36 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Select Role')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () => _loginAsParent(context),
-              child: Text('Login as Parent'),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background.jpg',
+              fit: BoxFit.cover,
             ),
-            ElevatedButton(
-              onPressed: () => _loginAsKid(context),
-              child: Text('Login as Kid'),
+          ),
+          Positioned(
+            bottom: 150,
+            left: 50,
+            right: 50,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomButton(
+                  imagePath: 'assets/images/button.png',
+                  text: 'Play as Kid',
+                  onPressed: () => _loginAsKid(context),
+                ),
+                SizedBox(height: 20),
+                CustomButton(
+                  imagePath: 'assets/images/button.png',
+                  text: 'Play as Parent',
+                  onPressed: () => _loginAsParent(context),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
