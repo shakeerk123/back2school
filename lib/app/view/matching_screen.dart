@@ -3,18 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quiz_app/app/view/role_selection.dart';
-
+import 'matched_answers_screen.dart';
 
 class MatchingScreen extends StatefulWidget {
   @override
   _MatchingScreenState createState() => _MatchingScreenState();
 }
 
-class _MatchingScreenState extends State<MatchingScreen> {
+class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProviderStateMixin {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late DocumentReference _sessionRef;
   late StreamSubscription<DocumentSnapshot> _subscription;
   bool _waitingForOther = true;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  int _matches = 0;
+  List<String> _parentAnswers = [];
+  List<String> _childAnswers = [];
 
   @override
   void initState() {
@@ -27,15 +32,34 @@ class _MatchingScreenState extends State<MatchingScreen> {
         final kidCompleted = data['kidCompleted'] ?? false;
 
         if (parentCompleted && kidCompleted) {
-          setState(() {
-            _waitingForOther = false;
+          _calculateMatches().then((matches) {
+            setState(() {
+              _matches = matches;
+              _parentAnswers = List<String>.from(data['parentAnswers']);
+              _childAnswers = List<String>.from(data['childAnswers']);
+              _waitingForOther = false;
+              _controller.forward(); // Start the animation
+            });
           });
+        }
+
+        if (data['playAgain'] == true) {
+          _resetPlayAgain();
         }
       }
     });
+
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
   }
 
-  Future<Map<String, int>> _calculateMatches() async {
+  Future<int> _calculateMatches() async {
     final sessionSnapshot = await _sessionRef.get();
     final data = sessionSnapshot.data() as Map<String, dynamic>;
 
@@ -50,10 +74,24 @@ class _MatchingScreenState extends State<MatchingScreen> {
       }
     }
 
-    return {'matches': matches, 'total': maxIndex};
+    return matches;
   }
 
-  Future<void> _resetGame(BuildContext context) async {
+  Future<void> _resetPlayAgain() async {
+    await _sessionRef.update({'playAgain': false});
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => RoleSelectionScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _triggerPlayAgain() async {
+    await _resetDatabase();
+    await _sessionRef.update({'playAgain': true});
+  }
+
+  Future<void> _resetDatabase() async {
     await _sessionRef.update({
       'parentCurrentQuestionIndex': 0,
       'childCurrentQuestionIndex': 0,
@@ -67,18 +105,18 @@ class _MatchingScreenState extends State<MatchingScreen> {
       'isKidLoggedIn': false,
       'parentReady': false,
       'kidReady': false,
+      'playAgain': false, // Reset the playAgain field
     });
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => RoleSelectionScreen()),
-      (route) => false,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Database has been reset')),
     );
   }
 
   @override
   void dispose() {
     _subscription.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -93,34 +131,39 @@ class _MatchingScreenState extends State<MatchingScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Matches'), automaticallyImplyLeading: false),
-      body: FutureBuilder<Map<String, int>>(
-        future: _calculateMatches(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error calculating matches'));
-          }
-
-          final matches = snapshot.data!['matches'];
-          final total = snapshot.data!['total'];
-
-          return Center(
+      body: Center(
+        child: FadeTransition(
+          opacity: _animation,
+          child: ScaleTransition(
+            scale: _animation,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Matches: $matches / $total', style: TextStyle(fontSize: 24)),
+                Text('Matches: $_matches', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
                 SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () => _resetGame(context),
+                  onPressed: _triggerPlayAgain,
                   child: Text('Play Again'),
+                ),
+                SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MatchedAnswersScreen(
+                          parentAnswers: _parentAnswers,
+                          childAnswers: _childAnswers,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text('View Matched Answers'),
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
