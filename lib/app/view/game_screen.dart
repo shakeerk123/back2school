@@ -23,6 +23,7 @@ class _GameScreenState extends State<GameScreen> {
   late Timer _timer;
   int _remainingTime = 60;
   bool _hasAnswered = false;
+  String? _draggedAnswer;
 
   @override
   void initState() {
@@ -191,12 +192,61 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             Text(_currentQuestion, style: TextStyle(fontSize: 24)),
             SizedBox(height: 24),
-            ..._options.map((option) => ElevatedButton(
-              onPressed: () => _submitAnswer(option),
-              child: Text(option),
-            )),
+            Expanded(
+              child: Column(
+                children: _options.map((option) {
+                  return Draggable<String>(
+                    data: option,
+                    child: AnswerCard(answer: option),
+                    feedback: Material(
+                      child: AnswerCard(answer: option),
+                      elevation: 5.0,
+                    ),
+                    childWhenDragging: AnswerCard(answer: option, isDragging: true),
+                  );
+                }).toList(),
+              ),
+            ),
+            DragTarget<String>(
+              onAccept: (receivedAnswer) {
+                setState(() {
+                  _draggedAnswer = receivedAnswer;
+                });
+                _submitAnswer(receivedAnswer);
+              },
+              builder: (context, acceptedData, rejectedData) {
+                return Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: Colors.blue[100],
+                  child: Center(
+                    child: _draggedAnswer == null
+                        ? Text('Drag answer here', style: TextStyle(fontSize: 18))
+                        : Text('Selected: $_draggedAnswer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                );
+              },
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AnswerCard extends StatelessWidget {
+  final String answer;
+  final bool isDragging;
+
+  AnswerCard({required this.answer, this.isDragging = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: isDragging ? Colors.grey : Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(answer, style: TextStyle(fontSize: 18)),
       ),
     );
   }

@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quiz_app/app/view/role_selection.dart';
+
 import 'matched_answers_screen.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class MatchingScreen extends StatefulWidget {
   @override
@@ -20,6 +22,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   int _matches = 0;
   List<String> _parentAnswers = [];
   List<String> _childAnswers = [];
+  AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -39,6 +42,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
               _childAnswers = List<String>.from(data['childAnswers']);
               _waitingForOther = false;
               _controller.forward(); // Start the animation
+              _playSound('success.wav');
             });
           });
         }
@@ -108,9 +112,10 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
       'playAgain': false, // Reset the playAgain field
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Database has been reset')),
-    );
+  }
+
+  void _playSound(String soundFile) {
+    _audioPlayer.play(AssetSource(soundFile));
   }
 
   @override

@@ -4,7 +4,8 @@ class MatchedAnswersScreen extends StatelessWidget {
   final List<String> parentAnswers;
   final List<String> childAnswers;
 
-  MatchedAnswersScreen({required this.parentAnswers, required this.childAnswers});
+  MatchedAnswersScreen(
+      {required this.parentAnswers, required this.childAnswers});
 
   @override
   Widget build(BuildContext context) {
@@ -25,21 +26,27 @@ class MatchedAnswersScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Matched Answers'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Parent Answer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Text('Child Answer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Divider(),
-            ...answerRows,
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Parent Answer',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Child Answer',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              Divider(),
+              ...answerRows,
+            ],
+          ),
         ),
       ),
     );
