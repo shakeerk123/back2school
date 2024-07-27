@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_build_context_synchronously, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -6,7 +8,7 @@ import 'matching_screen.dart';
 class GameScreen extends StatefulWidget {
   final String role; // 'kid' or 'parent'
 
-  GameScreen({required this.role});
+  const GameScreen({super.key, required this.role});
 
   @override
   _GameScreenState createState() => _GameScreenState();
@@ -33,7 +35,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_remainingTime > 0) {
           _remainingTime--;
@@ -166,7 +168,7 @@ class _GameScreenState extends State<GameScreen> {
           title: Text('${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
           automaticallyImplyLeading: false, // Remove the back button
         ),
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -180,7 +182,7 @@ class _GameScreenState extends State<GameScreen> {
             child: Center(
               child: Text(
                 'Time: $_remainingTime',
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
               ),
             ),
           ),
@@ -190,19 +192,19 @@ class _GameScreenState extends State<GameScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(_currentQuestion, style: TextStyle(fontSize: 24)),
-            SizedBox(height: 24),
+            Text(_currentQuestion, style: const TextStyle(fontSize: 24)),
+            const SizedBox(height: 24),
             Expanded(
               child: Column(
                 children: _options.map((option) {
                   return Draggable<String>(
                     data: option,
-                    child: AnswerCard(answer: option),
                     feedback: Material(
-                      child: AnswerCard(answer: option),
                       elevation: 5.0,
+                      child: AnswerCard(answer: option),
                     ),
                     childWhenDragging: AnswerCard(answer: option, isDragging: true),
+                    child: AnswerCard(answer: option),
                   );
                 }).toList(),
               ),
@@ -221,8 +223,8 @@ class _GameScreenState extends State<GameScreen> {
                   color: Colors.blue[100],
                   child: Center(
                     child: _draggedAnswer == null
-                        ? Text('Drag answer here', style: TextStyle(fontSize: 18))
-                        : Text('Selected: $_draggedAnswer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        ? const Text('Drag answer here', style: TextStyle(fontSize: 18))
+                        : Text('Selected: $_draggedAnswer', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 );
               },
@@ -238,7 +240,7 @@ class AnswerCard extends StatelessWidget {
   final String answer;
   final bool isDragging;
 
-  AnswerCard({required this.answer, this.isDragging = false});
+  const AnswerCard({super.key, required this.answer, this.isDragging = false});
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +248,7 @@ class AnswerCard extends StatelessWidget {
       color: isDragging ? Colors.grey : Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(answer, style: TextStyle(fontSize: 18)),
+        child: Text(answer, style: const TextStyle(fontSize: 18)),
       ),
     );
   }

@@ -129,13 +129,13 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     if (_waitingForOther) {
       return Scaffold(
-        appBar: AppBar(title: Text('Waiting for the other player'), automaticallyImplyLeading: false),
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(title: const Text('Waiting for the other player'), automaticallyImplyLeading: false),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Matches'), automaticallyImplyLeading: false),
+      appBar: AppBar(title: const Text('Matches'), automaticallyImplyLeading: false),
       body: Center(
         child: FadeTransition(
           opacity: _animation,
@@ -144,13 +144,13 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Matches: $_matches', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
-                SizedBox(height: 24),
+                Text('Matches: $_matches', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _triggerPlayAgain,
-                  child: Text('Play Again'),
+                  child: const Text('Play Again'),
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -163,7 +163,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                       ),
                     );
                   },
-                  child: Text('View Matched Answers'),
+                  child: const Text('View Matched Answers'),
                 ),
               ],
             ),

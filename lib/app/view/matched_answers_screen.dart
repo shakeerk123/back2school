@@ -25,14 +25,14 @@ class MatchedAnswersScreen extends StatelessWidget {
             Expanded(
               child: Text(
                 parentAnswers[i],
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
             ),
             Expanded(
               child: Text(
                 childAnswers[i],
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -43,14 +43,14 @@ class MatchedAnswersScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Matched Answers'),
+        title: const Text('Matched Answers'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
@@ -69,7 +69,7 @@ class MatchedAnswersScreen extends StatelessWidget {
                 ),
               ],
             ),
-            Divider(),
+            const Divider(),
             Expanded(
               child: ListView(
                 children: answerRows,

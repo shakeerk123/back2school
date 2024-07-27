@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get/get.dart';
 import 'package:quiz_app/app/utils/widgets/custom_button.dart';
-import 'waiting_screen.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
   @override
@@ -38,14 +38,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isParentLoggedIn'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Parent is already logged in on another device.')));
     } else {
       await sessionRef.update({'isParentLoggedIn': true});
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => WaitingScreen(role: 'parent')),
-      );
+      Get.toNamed('/waiting', arguments: 'parent');
     }
   }
 
@@ -55,14 +52,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isKidLoggedIn'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Kid is already logged in on another device.')));
     } else {
       await sessionRef.update({'isKidLoggedIn': true});
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => WaitingScreen(role: 'kid')),
-      );
+      Get.toNamed('/waiting', arguments: 'kid');
     }
   }
 
@@ -89,7 +83,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                   text: 'Play as Kid',
                   onPressed: () => _loginAsKid(context),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 CustomButton(
                   imagePath: 'assets/images/button.png',
                   text: 'Play as Parent',
