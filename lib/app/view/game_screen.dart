@@ -1,9 +1,8 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'matching_screen.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 
 class GameScreen extends StatefulWidget {
   final String role; // 'kid' or 'parent'
@@ -25,7 +24,11 @@ class _GameScreenState extends State<GameScreen> {
   late Timer _timer;
   int _remainingTime = 60;
   bool _hasAnswered = false;
-  String? _draggedAnswer;
+  int _matchedScore = 0;
+  bool _showPopup = false;
+  bool _isMatch = false;
+  bool _waitingForOtherPlayer = false;
+  String _selectedOption = '';
 
   @override
   void initState() {
@@ -58,20 +61,27 @@ class _GameScreenState extends State<GameScreen> {
           // Handle current question index based on role
           if (widget.role == 'parent') {
             _currentQuestionIndex = data['parentCurrentQuestionIndex'];
+            _matchedScore = data['parentMatchedScore'] ?? 0;
           } else {
             _currentQuestionIndex = data['childCurrentQuestionIndex'];
+            _matchedScore = data['kidMatchedScore'] ?? 0;
           }
 
           if (_currentQuestionIndex < questions.length) {
             final question = questions[_currentQuestionIndex];
             setState(() {
-              _currentQuestion = widget.role == 'parent' ? question['parentQuestion'] : question['kidQuestion'];
+              _currentQuestion = widget.role == 'parent'
+                  ? question['parentQuestion']
+                  : question['kidQuestion'];
               _options = List<String>.from(question['options']);
               _loading = false;
               _hasAnswered = false; // Reset for the new question
+              _waitingForOtherPlayer = false; // Reset waiting status
+              _selectedOption = ''; // Reset selected option
             });
           } else {
-            print('Error: currentQuestionIndex ($_currentQuestionIndex) is out of range for questions array (length: ${questions.length}).');
+            print(
+                'Error: currentQuestionIndex ($_currentQuestionIndex) is out of range for questions array (length: ${questions.length}).');
           }
 
           // Check if both have completed the game
@@ -79,6 +89,21 @@ class _GameScreenState extends State<GameScreen> {
           final kidCompleted = data['kidCompleted'] ?? false;
           if (parentCompleted && kidCompleted) {
             _completeGame();
+          }
+
+          // Show match/not match popup
+          if (data['showPopup'] == true) {
+            final parentAnswer = data['parentSubmittedAnswer'];
+            final childAnswer = data['childSubmittedAnswer'];
+            setState(() {
+              _isMatch = parentAnswer == childAnswer;
+              _showPopup = true;
+            });
+            Future.delayed(const Duration(seconds: 1), () {
+              setState(() {
+                _showPopup = false;
+              });
+            });
           }
 
         } catch (e) {
@@ -92,7 +117,10 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _submitAnswer(String answer) async {
     if (_hasAnswered) return; // Prevent multiple answers for the same question
-    _hasAnswered = true;
+    setState(() {
+      _hasAnswered = true;
+      _selectedOption = answer; // Highlight the selected option
+    });
 
     try {
       DocumentSnapshot snapshot = await _sessionRef.get();
@@ -104,33 +132,65 @@ class _GameScreenState extends State<GameScreen> {
           'parentAnswers': FieldValue.arrayUnion([answer]),
           'parentSubmittedAnswer': answer,
         });
-
-        if (_currentQuestionIndex + 1 < questions.length) {
-          await _sessionRef.update({
-            'parentCurrentQuestionIndex': FieldValue.increment(1),
-          });
-        } else {
-          await _sessionRef.update({
-            'parentCompleted': true,
-          });
-          _completeGame();
-        }
       } else {
         await _sessionRef.update({
           'childAnswers': FieldValue.arrayUnion([answer]),
           'childSubmittedAnswer': answer,
         });
+      }
 
-        if (_currentQuestionIndex + 1 < questions.length) {
+      // Check if both have answered
+      snapshot = await _sessionRef.get();
+      final updatedData = snapshot.data() as Map<String, dynamic>;
+
+      if (updatedData['parentSubmittedAnswer'] != null &&
+          updatedData['childSubmittedAnswer'] != null) {
+        // Both have answered, check if they match
+        final parentAnswer = updatedData['parentSubmittedAnswer'];
+        final childAnswer = updatedData['childSubmittedAnswer'];
+        if (parentAnswer == childAnswer) {
+          setState(() {
+            _isMatch = true;
+            _matchedScore++;
+          });
           await _sessionRef.update({
-            'childCurrentQuestionIndex': FieldValue.increment(1),
+            'parentMatchedScore': _matchedScore,
+            'kidMatchedScore': _matchedScore,
           });
         } else {
+          setState(() {
+            _isMatch = false;
+          });
+        }
+
+        // Show match/not match popup on both devices
+        await _sessionRef.update({
+          'showPopup': true,
+        });
+        await Future.delayed(const Duration(seconds: 1));
+        await _sessionRef.update({
+          'showPopup': false,
+        });
+
+        // Clear submitted answers and move to next question
+        await _sessionRef.update({
+          'parentSubmittedAnswer': null,
+          'childSubmittedAnswer': null,
+          'parentCurrentQuestionIndex': FieldValue.increment(1),
+          'childCurrentQuestionIndex': FieldValue.increment(1),
+        });
+
+        if (_currentQuestionIndex + 1 >= questions.length) {
           await _sessionRef.update({
+            'parentCompleted': true,
             'kidCompleted': true,
           });
           _completeGame();
         }
+      } else {
+        setState(() {
+          _waitingForOtherPlayer = true;
+        });
       }
     } catch (e) {
       print('Error submitting answer: $e');
@@ -147,6 +207,13 @@ class _GameScreenState extends State<GameScreen> {
         'kidCompleted': true,
       });
     }
+
+    // Get final scores
+    DocumentSnapshot snapshot = await _sessionRef.get();
+    final data = snapshot.data() as Map<String, dynamic>;
+    final int parentScore = data['parentMatchedScore'];
+    final int kidScore = data['kidMatchedScore'];
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => MatchingScreen()),
@@ -165,7 +232,8 @@ class _GameScreenState extends State<GameScreen> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
+          title: Text(
+              '${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
           automaticallyImplyLeading: false, // Remove the back button
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -174,81 +242,94 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
+        title: Text(
+            '${widget.role.toUpperCase()} - Question ${_currentQuestionIndex + 1}'),
         automaticallyImplyLeading: false, // Remove the back button
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                'Time: $_remainingTime',
+                '$_matchedScore Match ',
                 style: const TextStyle(fontSize: 18),
               ),
             ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(_currentQuestion, style: const TextStyle(fontSize: 24)),
-            const SizedBox(height: 24),
-            Expanded(
-              child: Column(
-                children: _options.map((option) {
-                  return Draggable<String>(
-                    data: option,
-                    feedback: Material(
-                      elevation: 5.0,
-                      child: AnswerCard(answer: option),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                LinearPercentIndicator(
+                  lineHeight: 5.0,
+                  percent: 1.0 - _remainingTime / 60,
+                  backgroundColor: Colors.grey,
+                  progressColor: Colors.blue,
+                  animation: true,
+                  animateFromLastPercent: true,
+                  alignment: MainAxisAlignment.center,
+                ),
+                const SizedBox(height: 24),
+                Text(_currentQuestion, style: const TextStyle(fontSize: 24)),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _options.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: _options[index] == _selectedOption
+                                ? Colors.red
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        color: _options[index] == _selectedOption
+                            ? Colors.red[100]
+                            : Colors.white,
+                        child: ListTile(
+                          title: Text(_options[index],
+                              style: const TextStyle(fontSize: 18)),
+                          onTap: () {
+                            _submitAnswer(_options[index]);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (_waitingForOtherPlayer)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text(
+                      'Waiting for the other player...',
+                      style: const TextStyle(fontSize: 18, color: Colors.red),
                     ),
-                    childWhenDragging: AnswerCard(answer: option, isDragging: true),
-                    child: AnswerCard(answer: option),
-                  );
-                }).toList(),
+                  ),
+              ],
+            ),
+          ),
+          if (_showPopup)
+            Center(
+              child: Container(
+                color: Colors.black54,
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _isMatch ? 'Match!' : 'Not a Match!',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-            DragTarget<String>(
-              onAccept: (receivedAnswer) {
-                setState(() {
-                  _draggedAnswer = receivedAnswer;
-                });
-                _submitAnswer(receivedAnswer);
-              },
-              builder: (context, acceptedData, rejectedData) {
-                return Container(
-                  height: 100,
-                  width: double.infinity,
-                  color: Colors.blue[100],
-                  child: Center(
-                    child: _draggedAnswer == null
-                        ? const Text('Drag answer here', style: TextStyle(fontSize: 18))
-                        : Text('Selected: $_draggedAnswer', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AnswerCard extends StatelessWidget {
-  final String answer;
-  final bool isDragging;
-
-  const AnswerCard({super.key, required this.answer, this.isDragging = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: isDragging ? Colors.grey : Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(answer, style: const TextStyle(fontSize: 18)),
+        ],
       ),
     );
   }

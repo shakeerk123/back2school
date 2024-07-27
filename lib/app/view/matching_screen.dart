@@ -99,19 +99,22 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
     await _sessionRef.update({
       'parentCurrentQuestionIndex': 0,
       'childCurrentQuestionIndex': 0,
+      'parentMatchedScore': 0,
+      'kidMatchedScore': 0,
       'parentAnswers': [],
       'childAnswers': [],
-      'parentSubmittedAnswer': '',
-      'childSubmittedAnswer': '',
+      'parentSubmittedAnswer': null,
+      'childSubmittedAnswer': null,
       'parentCompleted': false,
       'kidCompleted': false,
       'isParentLoggedIn': false,
       'isKidLoggedIn': false,
-      'parentReady': false,
+      'parentReady': false, 
+      'showPopup': false, 
       'kidReady': false,
-      'playAgain': false, // Reset the playAgain field
+      'playAgain': false,
+       // Reset the playAgain field
     });
-
   }
 
   void _playSound(String soundFile) {
@@ -151,20 +154,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                   child: const Text('Play Again'),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MatchedAnswersScreen(
-                          parentAnswers: _parentAnswers,
-                          childAnswers: _childAnswers,
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text('View Matched Answers'),
-                ),
+                
               ],
             ),
           ),

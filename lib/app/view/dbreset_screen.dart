@@ -12,8 +12,6 @@ class DbResetScreen extends StatelessWidget {
       'childCurrentQuestionIndex': 0,
       'parentAnswers': [],
       'childAnswers': [],
-      'parentSubmittedAnswer': '',
-      'childSubmittedAnswer': '',
       'parentCompleted': false,
       'kidCompleted': false,
       'isParentLoggedIn': false,
@@ -21,6 +19,10 @@ class DbResetScreen extends StatelessWidget {
       'parentReady': false,
       'kidReady': false,
       'playAgain': false,
+      'parentSubmittedAnswer': null,
+      'childSubmittedAnswer': null,
+      'parentMatchedScore': 0,
+      'kidMatchedScore': 0,
     });
 
     ScaffoldMessenger.of(context).showSnackBar(

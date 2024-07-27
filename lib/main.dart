@@ -23,9 +23,12 @@ class MyApp extends StatelessWidget {
       }),
       getPages: [
         GetPage(name: '/', page: () => RoleSelectionScreen()),
-        GetPage(name: '/waiting', page: () => WaitingScreen(), binding: BindingsBuilder(() {
-          Get.put(WaitingController());
-        })),
+        GetPage(
+            name: '/waiting',
+            page: () => WaitingScreen(),
+            binding: BindingsBuilder(() {
+              Get.put(WaitingController());
+            })),
         GetPage(name: '/game', page: () => GameScreen(role: Get.arguments)),
       ],
       home: RoleSelectionScreen(),

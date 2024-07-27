@@ -8,17 +8,50 @@ class WaitingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/waiting.jpg',
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xf2fcff), Color(0xf2fcff)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'How to Play:',
+                    style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    '1. Each player answers the questions.',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                  Text(
+                    '2. Try to match the answers with your partner.',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                  Text(
+                    '3. The game ends when both players have answered.',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                  Text(
+                    '4. The score is calculated based on matching answers.',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            Column(
               children: [
                 const Text(
                   'Waiting for the other player to be ready...',
@@ -30,8 +63,8 @@ class WaitingScreen extends StatelessWidget {
                           controller.isReady.value ? null : controller.setReady,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 20),
                         textStyle: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -39,13 +72,15 @@ class WaitingScreen extends StatelessWidget {
                       ),
                       child: Text(
                         controller.isReady.value ? 'Ready!' : 'I\'m Ready',
-                        style: const TextStyle(color: Colors.white, fontSize: 18),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     )),
+                const SizedBox(height: 24),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
