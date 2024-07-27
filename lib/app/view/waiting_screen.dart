@@ -8,6 +8,7 @@ class WaitingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFA629),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -62,7 +63,7 @@ class WaitingScreen extends StatelessWidget {
                       onPressed:
                           controller.isReady.value ? null : controller.setReady,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
+                        backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 20),
                         textStyle: const TextStyle(
@@ -73,7 +74,7 @@ class WaitingScreen extends StatelessWidget {
                       child: Text(
                         controller.isReady.value ? 'Ready!' : 'I\'m Ready',
                         style:
-                            const TextStyle(color: Colors.white, fontSize: 18),
+                            const TextStyle(color: Colors.blue, fontSize: 18),
                       ),
                     )),
                 const SizedBox(height: 24),

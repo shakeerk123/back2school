@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quiz_app/app/view/role_selection.dart';
 
-import 'matched_answers_screen.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class MatchingScreen extends StatefulWidget {
@@ -19,9 +18,6 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   bool _waitingForOther = true;
   late AnimationController _controller;
   late Animation<double> _animation;
-  int _matches = 0;
-  List<String> _parentAnswers = [];
-  List<String> _childAnswers = [];
   AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
@@ -35,15 +31,10 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
         final kidCompleted = data['kidCompleted'] ?? false;
 
         if (parentCompleted && kidCompleted) {
-          _calculateMatches().then((matches) {
-            setState(() {
-              _matches = matches;
-              _parentAnswers = List<String>.from(data['parentAnswers']);
-              _childAnswers = List<String>.from(data['childAnswers']);
-              _waitingForOther = false;
-              _controller.forward(); // Start the animation
-              _playSound('success.wav');
-            });
+          setState(() {
+            _waitingForOther = false;
+            _controller.forward(); // Start the animation
+            _playSound('success.wav');
           });
         }
 
@@ -61,24 +52,6 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
       parent: _controller,
       curve: Curves.easeInOut,
     );
-  }
-
-  Future<int> _calculateMatches() async {
-    final sessionSnapshot = await _sessionRef.get();
-    final data = sessionSnapshot.data() as Map<String, dynamic>;
-
-    final parentAnswers = List<String>.from(data['parentAnswers']);
-    final childAnswers = List<String>.from(data['childAnswers']);
-
-    int matches = 0;
-    int maxIndex = parentAnswers.length < childAnswers.length ? parentAnswers.length : childAnswers.length;
-    for (int i = 0; i < maxIndex; i++) {
-      if (parentAnswers[i] == childAnswers[i]) {
-        matches++;
-      }
-    }
-
-    return matches;
   }
 
   Future<void> _resetPlayAgain() async {
@@ -112,8 +85,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
       'parentReady': false, 
       'showPopup': false, 
       'kidReady': false,
-      'playAgain': false,
-       // Reset the playAgain field
+      'playAgain': false, // Reset the playAgain field
     });
   }
 
@@ -138,7 +110,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Matches'), automaticallyImplyLeading: false),
+      appBar: AppBar(title: const Text('Game Over'), automaticallyImplyLeading: false),
       body: Center(
         child: FadeTransition(
           opacity: _animation,
@@ -147,14 +119,12 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Matches: $_matches', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
+                const Text('Game Over', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _triggerPlayAgain,
                   child: const Text('Play Again'),
                 ),
-                const SizedBox(height: 24),
-                
               ],
             ),
           ),

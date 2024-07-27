@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'matching_screen.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:get/get.dart';
 
 class GameScreen extends StatefulWidget {
   final String role; // 'kid' or 'parent'
@@ -39,14 +40,16 @@ class _GameScreenState extends State<GameScreen> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_remainingTime > 0) {
-          _remainingTime--;
-        } else {
-          _timer.cancel();
-          _completeGame();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (_remainingTime > 0) {
+            _remainingTime--;
+          } else {
+            _timer.cancel();
+            _completeGame();
+          }
+        });
+      }
     });
   }
 
@@ -69,16 +72,18 @@ class _GameScreenState extends State<GameScreen> {
 
           if (_currentQuestionIndex < questions.length) {
             final question = questions[_currentQuestionIndex];
-            setState(() {
-              _currentQuestion = widget.role == 'parent'
-                  ? question['parentQuestion']
-                  : question['kidQuestion'];
-              _options = List<String>.from(question['options']);
-              _loading = false;
-              _hasAnswered = false; // Reset for the new question
-              _waitingForOtherPlayer = false; // Reset waiting status
-              _selectedOption = ''; // Reset selected option
-            });
+            if (mounted) {
+              setState(() {
+                _currentQuestion = widget.role == 'parent'
+                    ? question['parentQuestion']
+                    : question['kidQuestion'];
+                _options = List<String>.from(question['options']);
+                _loading = false;
+                _hasAnswered = false; // Reset for the new question
+                _waitingForOtherPlayer = false; // Reset waiting status
+                _selectedOption = ''; // Reset selected option
+              });
+            }
           } else {
             print(
                 'Error: currentQuestionIndex ($_currentQuestionIndex) is out of range for questions array (length: ${questions.length}).');
@@ -95,17 +100,20 @@ class _GameScreenState extends State<GameScreen> {
           if (data['showPopup'] == true) {
             final parentAnswer = data['parentSubmittedAnswer'];
             final childAnswer = data['childSubmittedAnswer'];
-            setState(() {
-              _isMatch = parentAnswer == childAnswer;
-              _showPopup = true;
-            });
-            Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) {
               setState(() {
-                _showPopup = false;
+                _isMatch = parentAnswer == childAnswer;
+                _showPopup = true;
               });
+            }
+            Future.delayed(const Duration(seconds: 1), () {
+              if (mounted) {
+                setState(() {
+                  _showPopup = false;
+                });
+              }
             });
           }
-
         } catch (e) {
           print('Error processing snapshot data: $e');
         }
@@ -249,9 +257,14 @@ class _GameScreenState extends State<GameScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
-              child: Text(
-                '$_matchedScore Match ',
-                style: const TextStyle(fontSize: 18),
+              child: Row(
+                children: [
+                  const Icon(Icons.local_fire_department, color: Colors.orange),
+                  Text(
+                    '$_matchedScore match',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ],
               ),
             ),
           ),
@@ -263,12 +276,11 @@ class _GameScreenState extends State<GameScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                const SizedBox(height: 24),
                 LinearPercentIndicator(
                   lineHeight: 5.0,
                   percent: 1.0 - _remainingTime / 60,
                   backgroundColor: Colors.grey,
-                  progressColor: Colors.blue,
+                  progressColor: Colors.green,
                   animation: true,
                   animateFromLastPercent: true,
                   alignment: MainAxisAlignment.center,
@@ -277,28 +289,41 @@ class _GameScreenState extends State<GameScreen> {
                 Text(_currentQuestion, style: const TextStyle(fontSize: 24)),
                 const SizedBox(height: 24),
                 Expanded(
-                  child: ListView.builder(
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                    ),
                     itemCount: _options.length,
                     itemBuilder: (context, index) {
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(
-                            color: _options[index] == _selectedOption
-                                ? Colors.red
-                                : Colors.transparent,
-                            width: 2,
+                      return GestureDetector(
+                        onTap: () {
+                          _submitAnswer(_options[index]);
+                        },
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: _options[index] == _selectedOption
+                                  ? Colors.red
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        color: _options[index] == _selectedOption
-                            ? Colors.red[100]
-                            : Colors.white,
-                        child: ListTile(
-                          title: Text(_options[index],
-                              style: const TextStyle(fontSize: 18)),
-                          onTap: () {
-                            _submitAnswer(_options[index]);
-                          },
+                          color: _options[index] == _selectedOption
+                              ? Colors.red[100]
+                              : Colors.white,
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                _options[index],
+                                style: const TextStyle(fontSize: 18),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -309,6 +334,14 @@ class _GameScreenState extends State<GameScreen> {
                     padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
                       'Waiting for the other player...',
+                      style: const TextStyle(fontSize: 18, color: Colors.red),
+                    ),
+                  ),
+                if (_selectedOption.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text(
+                      'Locked option: $_selectedOption',
                       style: const TextStyle(fontSize: 18, color: Colors.red),
                     ),
                   ),

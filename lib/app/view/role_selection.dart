@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:quiz_app/app/utils/widgets/custom_button.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
   @override
@@ -65,11 +64,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/background.jpg',
-              fit: BoxFit.cover,
-            ),
+          Container(
+            color: Color(0xFFFFA629), // Set background color
           ),
           Positioned(
             bottom: 150,
@@ -78,16 +74,32 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CustomButton(
-                  imagePath: 'assets/images/button.png',
-                  text: 'Play as Kid',
+                ElevatedButton(
                   onPressed: () => _loginAsKid(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: const Text(
+                    'Play as Kid',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
                 const SizedBox(height: 20),
-                CustomButton(
-                  imagePath: 'assets/images/button.png',
-                  text: 'Play as Parent',
+                ElevatedButton(
                   onPressed: () => _loginAsParent(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: const Text(
+                    'Play as Parent',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
               ],
             ),
