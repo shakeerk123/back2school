@@ -62,49 +62,81 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            color: Color(0xFFFFA629), // Set background color
-          ),
-          Positioned(
-            bottom: 150,
-            left: 50,
-            right: 50,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: Container(
+        color: const Color(0xFFFFA629), // Set background color
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Welcome\nBack 2 School',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 40),
+            GridView.count(
+              shrinkWrap: true,
+              crossAxisCount: 2,
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 20,
+              padding: const EdgeInsets.all(20),
               children: [
-                ElevatedButton(
-                  onPressed: () => _loginAsKid(context),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    'Play as Kid',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+                _buildAnimatedButton(
+                  text: 'Parent',
                   onPressed: () => _loginAsParent(context),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    'Play as Parent',
-                    style: TextStyle(fontSize: 18),
-                  ),
+                ),
+                _buildAnimatedButton(
+                  text: 'Kid',
+                  onPressed: () => _loginAsKid(context),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedButton(
+      {required String text, required VoidCallback onPressed}) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              offset: Offset(0, 4),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          splashColor: Colors.orange.withOpacity(0.2),
+          highlightColor: Colors.orange.withOpacity(0.1),
+          onTap: onPressed,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+            child: Center(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

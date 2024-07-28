@@ -11,7 +11,8 @@ class MatchingScreen extends StatefulWidget {
   _MatchingScreenState createState() => _MatchingScreenState();
 }
 
-class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProviderStateMixin {
+class _MatchingScreenState extends State<MatchingScreen>
+    with SingleTickerProviderStateMixin {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late DocumentReference _sessionRef;
   late StreamSubscription<DocumentSnapshot> _subscription;
@@ -82,8 +83,8 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
       'kidCompleted': false,
       'isParentLoggedIn': false,
       'isKidLoggedIn': false,
-      'parentReady': false, 
-      'showPopup': false, 
+      'parentReady': false,
+      'showPopup': false,
       'kidReady': false,
       'playAgain': false, // Reset the playAgain field
     });
@@ -104,13 +105,16 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     if (_waitingForOther) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Waiting for the other player'), automaticallyImplyLeading: false),
+        backgroundColor: Color(0xFFFFA629),
+        appBar: AppBar(
+            title: const Text('Waiting for the other player'),
+            automaticallyImplyLeading: false),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Game Over'), automaticallyImplyLeading: false),
+      backgroundColor: Color(0xFFFFA629),
       body: Center(
         child: FadeTransition(
           opacity: _animation,
@@ -119,7 +123,9 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Game Over', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
+                const Text('Game Over',
+                    style:
+                        TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _triggerPlayAgain,

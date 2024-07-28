@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quiz_app/app/controller/role_selection_controller.dart';
 import 'package:quiz_app/app/controller/waiting_controller.dart';
+import 'package:quiz_app/app/view/dbreset_screen.dart';
 import 'package:quiz_app/app/view/game_screen.dart';
 import 'package:quiz_app/app/view/role_selection.dart';
 import 'package:quiz_app/app/view/waiting_screen.dart';
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
             })),
         GetPage(name: '/game', page: () => GameScreen(role: Get.arguments)),
       ],
-      home: RoleSelectionScreen(),
+      home: DbResetScreen(),
     );
   }
 }
