@@ -15,6 +15,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -32,7 +34,7 @@ class MyApp extends StatelessWidget {
             })),
         GetPage(name: '/game', page: () => GameScreen(role: Get.arguments)),
       ],
-      home: DbResetScreen(),
+      home: DbReset(),
     );
   }
 }

@@ -6,7 +6,7 @@ class CustomButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
 
-  CustomButton({
+  const CustomButton({
     required this.imagePath,
     required this.text,
     required this.onPressed,

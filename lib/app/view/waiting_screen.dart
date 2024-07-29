@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quiz_app/app/controller/waiting_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WaitingScreen extends StatelessWidget {
   final WaitingController controller = Get.put(WaitingController());
@@ -8,23 +9,33 @@ class WaitingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFA629),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xf2fcff), Color(0xf2fcff)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      backgroundColor: const Color(0xFFFFA629),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFFFFA629),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.black),
+            onPressed: () async {
+              await _resetDatabase();
+              Get.back(); // Navigate back to the previous screen
+              Get.delete<
+                  WaitingController>(); // Delete the controller to reset its state
+            },
           ),
-        ),
+        ],
+      ),
+      body: Container(
+        color: const Color(0xFFFFA629), // Set fixed orange background color
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'How to Play:',
                     style: TextStyle(
@@ -60,8 +71,11 @@ class WaitingScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Obx(() => ElevatedButton(
-                      onPressed:
-                          controller.isReady.value ? null : controller.setReady,
+                      onPressed: controller.isReady.value
+                          ? null
+                          : () {
+                              controller.setReady();
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
@@ -84,5 +98,28 @@ class WaitingScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _resetDatabase() async {
+    DocumentReference sessionRef =
+        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+    await sessionRef.update({
+      'parentCurrentQuestionIndex': 0,
+      'childCurrentQuestionIndex': 0,
+      'parentMatchedScore': 0,
+      'kidMatchedScore': 0,
+      'parentAnswers': [],
+      'childAnswers': [],
+      'parentSubmittedAnswer': null,
+      'childSubmittedAnswer': null,
+      'parentCompleted': false,
+      'kidCompleted': false,
+      'isParentLoggedIn': false,
+      'isKidLoggedIn': false,
+      'parentReady': false,
+      'showPopup': false,
+      'kidReady': false,
+      'playAgain': false,
+    });
   }
 }

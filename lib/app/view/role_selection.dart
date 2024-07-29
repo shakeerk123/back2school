@@ -3,14 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
+  const RoleSelectionScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _RoleSelectionScreenState createState() => _RoleSelectionScreenState();
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
 
   @override
   void initState() {
@@ -19,10 +21,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
   }
 
   @override
@@ -37,6 +35,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isParentLoggedIn'] == true) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Parent is already logged in on another device.')));
     } else {
@@ -51,6 +50,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     DocumentSnapshot sessionSnapshot = await sessionRef.get();
 
     if (sessionSnapshot.exists && sessionSnapshot['isKidLoggedIn'] == true) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Kid is already logged in on another device.')));
     } else {
@@ -110,7 +110,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black26,
               offset: Offset(0, 4),

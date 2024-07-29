@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:quiz_app/app/view/role_selection.dart';
+import 'package:get/get.dart';
 
-class DbResetScreen extends StatelessWidget {
-  Future<void> _resetDatabase(BuildContext context) async {
-    DocumentReference sessionRef =
-        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
+class DbReset extends StatelessWidget {
+  const DbReset({super.key});
 
+  Future<void> _resetDatabase() async {
+    DocumentReference sessionRef = FirebaseFirestore.instance.collection('sessions').doc('currentSession');
     await sessionRef.update({
       'parentCurrentQuestionIndex': 0,
       'childCurrentQuestionIndex': 0,
-      'parentAnswers': [],
-      'childAnswers': [],
+      'parentMatchedScore': 0,
+      'kidMatchedScore': 0,
+      'parentSelections': [],
+      'kidSelections': [],
+      'parentSubmittedAnswer': null,
+      'childSubmittedAnswer': null,
       'parentCompleted': false,
       'kidCompleted': false,
       'isParentLoggedIn': false,
@@ -19,28 +23,27 @@ class DbResetScreen extends StatelessWidget {
       'parentReady': false,
       'kidReady': false,
       'playAgain': false,
-      'parentSubmittedAnswer': null,
-      'childSubmittedAnswer': null,
-      'parentMatchedScore': 0,
-      'kidMatchedScore': 0,
     });
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Database has been reset')),
-    );
+  void _navigateToRoleSelection() {
+    Get.offAllNamed('/role-selection');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reset Database'),
-        automaticallyImplyLeading: false, // Remove the back button
+        title: const Text('Reset Database'),
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: ElevatedButton(
-          onPressed: () => _resetDatabase(context),
-          child: Text('Reset Database'),
+          onPressed: () async {
+            await _resetDatabase();
+            _navigateToRoleSelection();
+          },
+          child: const Text('Reset Database and Go to Role Selection'),
         ),
       ),
     );

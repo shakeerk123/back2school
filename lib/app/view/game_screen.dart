@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'matching_screen.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:get/get.dart';
 
 class GameScreen extends StatefulWidget {
   final String role; // 'kid' or 'parent'
@@ -11,6 +10,7 @@ class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.role});
 
   @override
+  // ignore: library_private_types_in_public_api
   _GameScreenState createState() => _GameScreenState();
 }
 
@@ -85,6 +85,7 @@ class _GameScreenState extends State<GameScreen> {
               });
             }
           } else {
+            // ignore: avoid_print
             print(
                 'Error: currentQuestionIndex ($_currentQuestionIndex) is out of range for questions array (length: ${questions.length}).');
           }
@@ -115,10 +116,12 @@ class _GameScreenState extends State<GameScreen> {
             });
           }
         } catch (e) {
+          // ignore: avoid_print
           print('Error processing snapshot data: $e');
         }
       }
     }, onError: (error) {
+      // ignore: avoid_print
       print('Error listening to document snapshots: $error');
     });
   }
@@ -201,6 +204,7 @@ class _GameScreenState extends State<GameScreen> {
         });
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error submitting answer: $e');
     }
   }
@@ -217,12 +221,9 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     // Get final scores
-    DocumentSnapshot snapshot = await _sessionRef.get();
-    final data = snapshot.data() as Map<String, dynamic>;
-    final int parentScore = data['parentMatchedScore'];
-    final int kidScore = data['kidMatchedScore'];
 
     Navigator.pushReplacement(
+      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(builder: (context) => MatchingScreen()),
     );
@@ -330,11 +331,11 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
                 if (_waitingForOtherPlayer)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16.0),
                     child: Text(
                       'Waiting for the other player...',
-                      style: const TextStyle(fontSize: 18, color: Colors.red),
+                      style: TextStyle(fontSize: 18, color: Colors.red),
                     ),
                   ),
                 if (_selectedOption.isNotEmpty)
