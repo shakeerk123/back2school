@@ -23,6 +23,12 @@ class DbReset extends StatelessWidget {
       'parentReady': false,
       'kidReady': false,
       'playAgain': false,
+      'kidCurrentRound': 1,
+      'parentCurrentRound': 1,
+      'kidSubmitted': false,
+      'parentSubmitted': false,
+      
+      
     });
   }
 

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:quiz_app/app/view/role_selection.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:quiz_app/app/view/role_selection.dart';
 
 class MatchingScreen extends StatefulWidget {
   @override
@@ -18,6 +18,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   late Animation<double> _animation;
   int _matchedScore = 0;
   AudioPlayer _audioPlayer = AudioPlayer();
+  bool _gameCompleted = false;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
           setState(() {
             _matchedScore = data['parentMatchedScore'] ?? 0; // Assuming parentMatchedScore and kidMatchedScore are the same
             _waitingForOther = false;
+            _gameCompleted = true;
             _controller.forward(); // Start the animation
             _playSound('success.wav');
           });
@@ -102,34 +104,45 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    if (_waitingForOther) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Waiting for the other player'), automaticallyImplyLeading: false),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Matched Score'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: const Text('Matching Screen'),
+        automaticallyImplyLeading: false,
+      ),
       body: Center(
-        child: FadeTransition(
-          opacity: _animation,
-          child: ScaleTransition(
-            scale: _animation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Matched Score: $_matchedScore', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _triggerPlayAgain,
-                  child: const Text('Play Again'),
+        child: _waitingForOther
+            ? const CircularProgressIndicator()
+            : FadeTransition(
+                opacity: _animation,
+                child: ScaleTransition(
+                  scale: _animation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_gameCompleted)
+                        Column(
+                          children: [
+                            Text(
+                              'Matched Score: $_matchedScore',
+                              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: _triggerPlayAgain,
+                              child: const Text('Play Again'),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      if (!_gameCompleted)
+                        const Text(
+                          'Waiting for the other player...',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }

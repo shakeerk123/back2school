@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quiz_app/app/controller/waiting_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WaitingScreen extends StatelessWidget {
   final WaitingController controller = Get.put(WaitingController());
@@ -14,17 +13,6 @@ class WaitingScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFFFFA629),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.black),
-            onPressed: () async {
-              await _resetDatabase();
-              Get.back(); // Navigate back to the previous screen
-              Get.delete<
-                  WaitingController>(); // Delete the controller to reset its state
-            },
-          ),
-        ],
       ),
       body: Container(
         color: const Color(0xFFFFA629), // Set fixed orange background color
@@ -98,28 +86,5 @@ class WaitingScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _resetDatabase() async {
-    DocumentReference sessionRef =
-        FirebaseFirestore.instance.collection('sessions').doc('currentSession');
-    await sessionRef.update({
-      'parentCurrentQuestionIndex': 0,
-      'childCurrentQuestionIndex': 0,
-      'parentMatchedScore': 0,
-      'kidMatchedScore': 0,
-      'parentAnswers': [],
-      'childAnswers': [],
-      'parentSubmittedAnswer': null,
-      'childSubmittedAnswer': null,
-      'parentCompleted': false,
-      'kidCompleted': false,
-      'isParentLoggedIn': false,
-      'isKidLoggedIn': false,
-      'parentReady': false,
-      'showPopup': false,
-      'kidReady': false,
-      'playAgain': false,
-    });
   }
 }
