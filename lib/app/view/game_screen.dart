@@ -52,7 +52,7 @@ class GameScreen extends StatelessWidget {
                 children: [
                   Obx(() => LinearPercentIndicator(
                         lineHeight: 5.0,
-                        percent: 1.0 - controller.remainingTime.value / 60,
+                        percent: 1.0 - controller.remainingTime.value / 20,
                         backgroundColor: Colors.grey,
                         progressColor: Colors.green,
                         animation: true,
@@ -75,37 +75,11 @@ class GameScreen extends StatelessWidget {
                           itemBuilder: (context, index) {
                             return Draggable<String>(
                               data: controller.options[index],
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: controller.usedOptions
-                                            .contains(controller.options[index])
-                                        ? Colors.grey
-                                        : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                color: controller.usedOptions
-                                        .contains(controller.options[index])
-                                    ? Colors.grey[200]
-                                    : Colors.white,
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Text(
-                                      controller.options[index],
-                                      style: const TextStyle(fontSize: 18),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                              ),
                               feedback: Material(
                                 color: Colors.transparent,
                                 child: Card(
                                   shape: RoundedRectangleBorder(
-                                    side: BorderSide(
+                                    side: const BorderSide(
                                       color: Colors.transparent,
                                       width: 2,
                                     ),
@@ -126,13 +100,39 @@ class GameScreen extends StatelessWidget {
                               ),
                               childWhenDragging: Card(
                                 shape: RoundedRectangleBorder(
-                                  side: BorderSide(
+                                  side: const BorderSide(
                                     color: Colors.grey,
                                     width: 2,
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 color: Colors.grey[200],
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text(
+                                      controller.options[index],
+                                      style: const TextStyle(fontSize: 18),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: controller.usedOptions
+                                            .contains(controller.options[index])
+                                        ? Colors.grey
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                color: controller.usedOptions
+                                        .contains(controller.options[index])
+                                    ? Colors.grey[200]
+                                    : Colors.white,
                                 child: Center(
                                   child: Padding(
                                     padding: const EdgeInsets.all(16.0),
@@ -197,7 +197,7 @@ class GameScreen extends StatelessWidget {
                         ),
                       );
                     }
-                    return SizedBox.shrink();
+                    return const SizedBox.shrink();
                   }),
                 ],
               );

@@ -11,7 +11,7 @@ import 'package:quiz_app/app/view/waiting_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -34,7 +34,9 @@ class MyApp extends StatelessWidget {
             })),
         GetPage(name: '/game', page: () => GameScreen(role: Get.arguments)),
       ],
-      home: DbReset(),
+      home: GameScreen(
+        role: '',
+      ),
     );
   }
 }

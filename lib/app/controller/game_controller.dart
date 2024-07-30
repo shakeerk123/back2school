@@ -13,7 +13,7 @@ class GameController extends GetxController {
   var currentQuestion = ''.obs;
   var options = <String>[].obs;
   var loading = true.obs;
-  var remainingTime = 60.obs;
+  var remainingTime = 20.obs; // Set to 20 seconds per question
   var hasAnswered = false.obs;
   var matchedScore = 0.obs;
   var isMatch = false.obs;
@@ -31,7 +31,6 @@ class GameController extends GetxController {
   void onInit() {
     super.onInit();
     _initializeSession();
-    _startTimer();
   }
 
   void setRole(String role) {
@@ -39,12 +38,15 @@ class GameController extends GetxController {
   }
 
   void _startTimer() {
+    _timer?.cancel(); // Cancel any existing timer
+    remainingTime.value = 20; // Reset timer for each question
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (remainingTime.value > 0) {
         remainingTime.value--;
       } else {
         _timer?.cancel();
-        completeGame();
+        _moveToNextQuestion();
       }
     });
   }
@@ -79,6 +81,7 @@ class GameController extends GetxController {
             selectedOption.value = '';
             selectedOptions.value = ['', '', '']; // Reset selected options
             usedOptions.clear(); // Clear used options
+            _startTimer(); // Start the timer for the new question
           } else {
             print(
                 'Error: currentQuestionIndex (${currentQuestionIndex.value}) is out of range for questions array (length: ${questions.length}).');
@@ -90,7 +93,6 @@ class GameController extends GetxController {
           if (parentCompleted.value && kidCompleted.value) {
             completeGame();
           }
-
         } catch (e) {
           print('Error processing snapshot data: $e');
         }
@@ -107,13 +109,14 @@ class GameController extends GetxController {
     selectedOptions[index] = option;
     usedOptions.add(option); // Mark option as used
     if (selectedOptions.every((element) => element.isNotEmpty)) {
-      submitAnswer();
+      _submitAnswer();
     }
   }
 
-  Future<void> submitAnswer() async {
+  Future<void> _submitAnswer() async {
     if (hasAnswered.value) return;
     hasAnswered.value = true;
+    _timer?.cancel(); // Cancel the timer when the answer is submitted
 
     try {
       final sortedAnswers = selectedOptions.toList()..sort();
@@ -155,26 +158,29 @@ class GameController extends GetxController {
         await _sessionRef.update({
           'parentSubmittedAnswer': null,
           'childSubmittedAnswer': null,
-          'parentCurrentQuestionIndex': FieldValue.increment(1),
-          'childCurrentQuestionIndex': FieldValue.increment(1),
         });
 
-        if (currentQuestionIndex.value + 1 >= questions.length) {
-          await _sessionRef.update({
-            'parentCompleted': true,
-            'kidCompleted': true,
-          });
-          completeGame();
-        } else {
-          // Reset selected options for the next question
-          selectedOptions.value = ['', '', ''];
-          usedOptions.clear(); // Clear used options for the next question
-        }
+        _moveToNextQuestion();
       } else {
         waitingForOtherPlayer.value = true;
       }
     } catch (e) {
       print('Error submitting answer: $e');
+    }
+  }
+
+  void _moveToNextQuestion() async {
+    final data = (await _sessionRef.get()).data() as Map<String, dynamic>;
+    final questions = data['questions'] as List<dynamic>;
+
+    if (currentQuestionIndex.value + 1 < questions.length) {
+      await _sessionRef.update({
+        'parentCurrentQuestionIndex': FieldValue.increment(1),
+        'childCurrentQuestionIndex': FieldValue.increment(1),
+      });
+      _initializeSession(); // Reinitialize session to move to the next question
+    } else {
+       completeGame();
     }
   }
 
