@@ -41,8 +41,11 @@ dependencies:
   audioplayers: ^6.0.0
   just_audio: ^0.9.39
   percent_indicator: ^4.2.3
+<<<<<<< HEAD
   animated_text_kit: ^4.2.2
   
+=======
+>>>>>>> parent of ca4b492 (added stratered grid and popup)
 
 dev_dependencies:
   flutter_test:

@@ -56,6 +56,24 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
     );
   }
 
+  Future<int> _calculateMatches() async {
+    final sessionSnapshot = await _sessionRef.get();
+    final data = sessionSnapshot.data() as Map<String, dynamic>;
+
+    final parentAnswers = List<String>.from(data['parentAnswers']);
+    final childAnswers = List<String>.from(data['childAnswers']);
+
+    int matches = 0;
+    int maxIndex = parentAnswers.length < childAnswers.length ? parentAnswers.length : childAnswers.length;
+    for (int i = 0; i < maxIndex; i++) {
+      if (parentAnswers[i] == childAnswers[i]) {
+        matches++;
+      }
+    }
+
+    return matches;
+  }
+
   Future<void> _resetPlayAgain() async {
     await _sessionRef.update({'playAgain': false});
     Navigator.pushAndRemoveUntil(

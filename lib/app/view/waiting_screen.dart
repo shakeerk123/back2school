@@ -65,7 +65,7 @@ class WaitingScreen extends StatelessWidget {
                               controller.setReady();
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.blueAccent,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 20),
                         textStyle: const TextStyle(
@@ -76,7 +76,7 @@ class WaitingScreen extends StatelessWidget {
                       child: Text(
                         controller.isReady.value ? 'Ready!' : 'I\'m Ready',
                         style:
-                            const TextStyle(color: Colors.blue, fontSize: 18),
+                            const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     )),
                 const SizedBox(height: 24),
