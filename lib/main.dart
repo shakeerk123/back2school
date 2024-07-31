@@ -34,9 +34,7 @@ class MyApp extends StatelessWidget {
             })),
         GetPage(name: '/game', page: () => GameScreen(role: Get.arguments)),
       ],
-      home: GameScreen(
-        role: '',
-      ),
+      home: DbReset(),
     );
   }
 }
